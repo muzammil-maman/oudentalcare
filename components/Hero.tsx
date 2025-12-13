@@ -3,6 +3,10 @@ import { ArrowRight, Star } from 'lucide-react';
 import Button from './Button';
 
 const Hero: React.FC = () => {
+  const scrollToSection = (id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section id="home" className="relative h-screen min-h-[700px] flex items-center justify-center overflow-hidden">
       {/* Background Image */}
@@ -39,12 +43,12 @@ const Hero: React.FC = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4">
-            <Button variant="secondary" className="group">
+            <Button onClick={() => scrollToSection('contact')} variant="secondary" className="group">
               <span className="flex items-center gap-2">
                 Book Your Visit <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" />
               </span>
             </Button>
-            <Button variant="outline" className="border-white text-white hover:bg-white hover:text-brand-maroon">
+            <Button onClick={() => scrollToSection('services')} variant="outline" className="border-white text-white hover:bg-white hover:text-brand-maroon">
               View Our Services
             </Button>
           </div>

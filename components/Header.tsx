@@ -3,7 +3,8 @@ import { Menu, X, Phone, Calendar } from 'lucide-react';
 import Button from './Button';
 import { NavItem } from '../types';
 
-const LOGO_URL = "../oudentallogo.PNG";
+// Updated to absolute path for reliability
+const LOGO_URL = "/oudentallogo.PNG";
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '#home' },
@@ -27,6 +28,11 @@ const Header: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleBookNow = () => {
+    setIsMobileMenuOpen(false);
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <header 
       className={`fixed w-full z-50 transition-all duration-500 ${
@@ -37,22 +43,19 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <a href="#" className="flex items-center space-x-3 group">
-          <img 
-                src={LOGO_URL} 
-                alt="OU Dental Clinic Logo" 
-                className={`transition-all duration-300 ${isScrolled ? 'h-12' : 'h-16 md:h-20'}`}
-                onError={() => setImageError(true)}
-              />
             {!imageError ? (
               <img 
                 src={LOGO_URL} 
                 alt="OU Dental Clinic Logo" 
-                className={`transition-all duration-300 ${isScrolled ? 'h-12' : 'h-16 md:h-20'}`}
-                onError={() => setImageError(true)}
+                className={`transition-all duration-300 object-contain ${isScrolled ? 'h-12' : 'h-16 md:h-20'}`}
+                onError={(e) => {
+                  console.error("Logo load error", e);
+                  setImageError(true);
+                }}
               />
             ) : null}
             
-            {/* Show text if image fails OR if not scrolled (standard design) */}
+            {/* Show text if image fails or for additional branding when not scrolled */}
             {(imageError || !isScrolled) && (
               <div className={`flex flex-col ${imageError ? 'flex' : 'hidden lg:flex'}`}>
                 <span className={`text-brand-maroon font-serif font-bold leading-none tracking-wide ${isScrolled ? 'text-xl' : 'text-2xl'}`}>OU DENTAL CLINIC</span>
@@ -74,11 +77,11 @@ const Header: React.FC = () => {
                 {item.label}
               </a>
             ))}
-            <a href="tel:+1234567890" className="flex items-center space-x-2 text-brand-gold font-bold hover:text-brand-maroon transition-colors">
+            <a href="tel:+15551234567" className="flex items-center space-x-2 text-brand-gold font-bold hover:text-brand-maroon transition-colors">
               <Phone size={18} />
               <span>(555) 123-4567</span>
             </a>
-            <Button variant="primary" className="ml-4 flex items-center gap-2">
+            <Button onClick={handleBookNow} variant="primary" className="ml-4 flex items-center gap-2">
               <Calendar size={16} /> Book Now
             </Button>
           </nav>
@@ -108,7 +111,7 @@ const Header: React.FC = () => {
               {item.label}
             </a>
           ))}
-          <Button variant="primary" fullWidth className="mt-4">
+          <Button onClick={handleBookNow} variant="primary" fullWidth className="mt-4">
             Book Appointment
           </Button>
         </div>
