@@ -3,7 +3,7 @@ import { Menu, X, Phone, Calendar } from 'lucide-react';
 import Button from './Button';
 import { NavItem } from '../types';
 
-const LOGO_URL = "/logo.jpeg";
+const LOGO_URL = "../oudentallogo.PNG";
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '#home' },
@@ -37,6 +37,12 @@ const Header: React.FC = () => {
         <div className="flex justify-between items-center">
           {/* Logo */}
           <a href="#" className="flex items-center space-x-3 group">
+          <img 
+                src={LOGO_URL} 
+                alt="OU Dental Clinic Logo" 
+                className={`transition-all duration-300 ${isScrolled ? 'h-12' : 'h-16 md:h-20'}`}
+                onError={() => setImageError(true)}
+              />
             {!imageError ? (
               <img 
                 src={LOGO_URL} 
