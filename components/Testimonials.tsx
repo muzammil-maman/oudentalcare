@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Quote, Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Testimonial } from '../types';
 
@@ -31,9 +31,26 @@ const TESTIMONIALS: Testimonial[] = [
 
 const Testimonials: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
 
-  const next = () => setCurrentIndex((prev) => (prev + 1) % TESTIMONIALS.length);
-  const prev = () => setCurrentIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  const next = useCallback(() => {
+    setCurrentIndex((prev) => (prev + 1) % TESTIMONIALS.length);
+  }, []);
+
+  const prev = useCallback(() => {
+    setCurrentIndex((prev) => (prev - 1 + TESTIMONIALS.length) % TESTIMONIALS.length);
+  }, []);
+
+  // Auto-rotation logic
+  useEffect(() => {
+    if (isPaused) return;
+
+    const interval = setInterval(() => {
+      next();
+    }, 5000); // Rotate every 5 seconds
+
+    return () => clearInterval(interval);
+  }, [next, isPaused]);
 
   return (
     <section id="testimonials" className="py-24 bg-brand-maroon relative overflow-hidden">
@@ -51,7 +68,11 @@ const Testimonials: React.FC = () => {
         </div>
 
         <div className="max-w-4xl mx-auto">
-          <div className="relative bg-white rounded-3xl p-8 md:p-12 shadow-2xl">
+          <div 
+            className="relative bg-white rounded-3xl p-8 md:p-12 shadow-2xl transition-all duration-500"
+            onMouseEnter={() => setIsPaused(true)}
+            onMouseLeave={() => setIsPaused(false)}
+          >
             {/* Quote Icon */}
             <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-brand-gold p-4 rounded-full shadow-lg">
               <Quote className="text-white w-8 h-8 fill-current" />
@@ -59,7 +80,7 @@ const Testimonials: React.FC = () => {
 
             <div className="flex flex-col md:flex-row items-center gap-8 mt-6">
               {/* Image */}
-              <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0">
+              <div className="w-24 h-24 md:w-32 md:h-32 flex-shrink-0 transition-transform duration-500 hover:scale-105">
                 <img 
                   src={TESTIMONIALS[currentIndex].image} 
                   alt={TESTIMONIALS[currentIndex].name} 
@@ -68,13 +89,13 @@ const Testimonials: React.FC = () => {
               </div>
 
               {/* Content */}
-              <div className="flex-1 text-center md:text-left">
+              <div className="flex-1 text-center md:text-left animate-fade-in" key={currentIndex}>
                 <div className="flex justify-center md:justify-start gap-1 mb-3">
                   {[...Array(TESTIMONIALS[currentIndex].rating)].map((_, i) => (
                     <Star key={i} className="w-5 h-5 text-brand-gold fill-current" />
                   ))}
                 </div>
-                <p className="text-gray-600 text-lg md:text-xl italic mb-6 leading-relaxed">
+                <p className="text-gray-600 text-lg md:text-xl italic mb-6 leading-relaxed min-h-[100px]">
                   "{TESTIMONIALS[currentIndex].content}"
                 </p>
                 <div>
@@ -88,16 +109,32 @@ const Testimonials: React.FC = () => {
             <div className="flex justify-center gap-4 mt-8 md:absolute md:bottom-12 md:right-12 md:mt-0">
               <button 
                 onClick={prev}
-                className="p-2 rounded-full border border-gray-200 hover:bg-brand-maroon hover:text-white hover:border-brand-maroon transition-all"
+                aria-label="Previous testimonial"
+                className="p-2 rounded-full border border-gray-200 hover:bg-brand-maroon hover:text-white hover:border-brand-maroon transition-all active:scale-95"
               >
                 <ChevronLeft className="w-6 h-6" />
               </button>
               <button 
                 onClick={next}
-                className="p-2 rounded-full border border-gray-200 hover:bg-brand-maroon hover:text-white hover:border-brand-maroon transition-all"
+                aria-label="Next testimonial"
+                className="p-2 rounded-full border border-gray-200 hover:bg-brand-maroon hover:text-white hover:border-brand-maroon transition-all active:scale-95"
               >
                 <ChevronRight className="w-6 h-6" />
               </button>
+            </div>
+
+            {/* Progress Indicators */}
+            <div className="flex justify-center gap-2 mt-8 md:mt-4">
+              {TESTIMONIALS.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentIndex(i)}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${
+                    i === currentIndex ? 'w-8 bg-brand-gold' : 'w-2 bg-gray-200'
+                  }`}
+                  aria-label={`Go to testimonial ${i + 1}`}
+                />
+              ))}
             </div>
           </div>
         </div>

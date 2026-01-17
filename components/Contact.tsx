@@ -1,104 +1,250 @@
-import React from 'react';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+/**
+ * DEVELOPER NOTE: To make this form work with Google Sheets & Email:
+ * 1. Create a Google Sheet.
+ * 2. Go to Extensions > Apps Script.
+ * 3. Paste the following code:
+ * 
+ * function doPost(e) {
+ *   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
+ *   const data = JSON.parse(e.postData.contents);
+ *   
+ *   // Append to Sheet
+ *   sheet.appendRow([new Date(), data.firstName, data.lastName, data.email, data.service, data.message]);
+ *   
+ *   // Email to Management
+ *   MailApp.sendEmail({
+ *     to: "oudentalclinics@gmail.com",
+ *     subject: "New Appointment Request: " + data.firstName + " " + data.lastName,
+ *     body: `New request received:\n\nName: ${data.firstName} ${data.lastName}\nEmail: ${data.email}\nService: ${data.service}\nMessage: ${data.message}`
+ *   });
+ *   
+ *   // Confirmation Email to Patient
+ *   MailApp.sendEmail({
+ *     to: data.email,
+ *     subject: "Appointment Request Received - OU Dental Clinic",
+ *     body: `Dear ${data.firstName},\n\nThank you for reaching out to OU Dental Clinic. We have received your request for ${data.service} and will contact you shortly to confirm a time.\n\nBest regards,\nOU Dental Clinic Team`
+ *   });
+ *   
+ *   return ContentService.createTextOutput(JSON.stringify({result: "success"})).setMimeType(ContentService.MimeType.JSON);
+ * }
+ * 
+ * 4. Click 'Deploy' > 'New Deployment' > 'Web App'.
+ * 5. Set 'Who has access' to 'Anyone'.
+ * 6. Copy the Web App URL and paste it into the SCRIPT_URL constant below.
+ */
+
+import React, { useState } from 'react';
+import { MapPin, Phone, Mail, Clock, CheckCircle, Loader2, AlertCircle } from 'lucide-react';
 import Button from './Button';
 
+// REPLACE THIS with your deployed Google Apps Script URL
+const SCRIPT_URL = "https://script.google.com/macros/s/YOUR_SCRIPT_ID/exec";
+
 const Contact: React.FC = () => {
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    service: '',
+    message: ''
+  });
+  
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+    setStatus('idle');
+
+    try {
+      // If SCRIPT_URL is placeholder, simulate success for demo
+      if (SCRIPT_URL.includes("YOUR_SCRIPT_ID")) {
+        console.warn("Using demo simulation. Please set a real SCRIPT_URL in Contact.tsx for Google Sheets integration.");
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setStatus('success');
+      } else {
+        const response = await fetch(SCRIPT_URL, {
+          method: 'POST',
+          body: JSON.stringify(formData),
+        });
+        
+        if (response.ok) {
+          setStatus('success');
+          setFormData({ firstName: '', lastName: '', email: '', service: '', message: '' });
+        } else {
+          throw new Error("Submission failed");
+        }
+      }
+    } catch (err) {
+      console.error("Form error:", err);
+      setStatus('error');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <section id="contact" className="py-24 bg-brand-cream">
       <div className="container mx-auto px-4 md:px-6">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24">
           
           {/* Info Side */}
-          <div>
-            <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-2 block">Get in Touch</span>
-            <h2 className="font-serif text-4xl font-bold text-brand-maroon mb-6">Visit Our Clinic</h2>
-            <p className="text-gray-600 mb-8 leading-relaxed">
-              We are accepting new patients! Schedule your appointment today and take the first step towards a healthier, brighter smile.
-            </p>
+          <div className="space-y-8">
+            <div>
+              <span className="text-brand-gold font-bold tracking-widest uppercase text-sm mb-2 block">Connect With Us</span>
+              <h2 className="font-serif text-4xl md:text-5xl font-bold text-brand-maroon mb-6 leading-tight">Your Smile Transformation Starts Here</h2>
+              <p className="text-gray-600 text-lg mb-8 leading-relaxed max-w-lg">
+                We are currently accepting new patients. Fill out the form, and our treatment coordinator will reach out to you within 24 hours.
+              </p>
+            </div>
 
-            <div className="space-y-6">
-              <div className="flex items-start space-x-4">
-                <div className="bg-white p-3 rounded-full shadow-sm text-brand-maroon">
-                  <MapPin className="w-6 h-6" />
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-6">
+              {[
+                { icon: MapPin, label: "Address", val: "8-1-248/OU/143, Shop No.1, Opp. OU Community Hall, OU Colony, Shaikpet - 500008." },
+                { icon: Phone, label: "Phone", val: "+91 8008337083, +91 8309487912" },
+                { icon: Mail, label: "Email", val: "oudentalclinics@gmail.com" },
+                { icon: Clock, label: "Hours", val: "Mon - Sun: 11:00 AM - 9:00 PM" }
+              ].map((item, i) => (
+                <div key={i} className="flex items-start space-x-4 bg-white/50 p-4 rounded-2xl border border-brand-gold/10">
+                  <div className="bg-brand-maroon text-white p-3 rounded-xl shadow-md">
+                    <item.icon className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-gray-900 text-sm uppercase tracking-wide">{item.label}</h4>
+                    <p className="text-gray-600 text-sm mt-1">{item.val}</p>
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Address</h4>
-                  <p className="text-gray-600">123 Dental Avenue, Suite 101<br />Wellness City, ST 90210</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="bg-white p-3 rounded-full shadow-sm text-brand-maroon">
-                  <Phone className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Phone</h4>
-                  <p className="text-gray-600">(555) 123-4567</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="bg-white p-3 rounded-full shadow-sm text-brand-maroon">
-                  <Mail className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Email</h4>
-                  <p className="text-gray-600">hello@oudentalclinic.com</p>
-                </div>
-              </div>
-
-              <div className="flex items-start space-x-4">
-                <div className="bg-white p-3 rounded-full shadow-sm text-brand-maroon">
-                  <Clock className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="font-bold text-gray-900">Hours</h4>
-                  <p className="text-gray-600">Mon - Fri: 8:00 AM - 6:00 PM<br />Sat: 9:00 AM - 2:00 PM</p>
-                </div>
-              </div>
+              ))}
             </div>
           </div>
 
           {/* Form Side */}
-          <div className="bg-white rounded-3xl shadow-xl p-8 md:p-10 border-t-4 border-brand-gold">
-            <h3 className="font-serif text-2xl font-bold text-gray-900 mb-6">Request Appointment</h3>
-            <form className="space-y-4" onSubmit={(e) => e.preventDefault()}>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon outline-none transition-colors" placeholder="John" />
+          <div className="bg-white rounded-[2.5rem] shadow-2xl p-8 md:p-12 border border-gray-100 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-brand-gold/5 rounded-bl-full -z-0"></div>
+            
+            {status === 'success' ? (
+              <div className="flex flex-col items-center justify-center h-full py-12 text-center animate-fade-in relative z-10">
+                <div className="bg-green-100 p-6 rounded-full mb-6">
+                  <CheckCircle className="w-16 h-16 text-green-600" />
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
-                  <input type="text" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon outline-none transition-colors" placeholder="Doe" />
-                </div>
+                <h3 className="font-serif text-3xl font-bold text-gray-900 mb-4">Request Sent!</h3>
+                <p className="text-gray-600 text-lg max-w-xs mx-auto mb-8">
+                  We've received your appointment request. Check your email for a confirmation. We'll speak soon!
+                </p>
+                <Button onClick={() => setStatus('idle')} variant="outline" className="border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-white">
+                  Send Another Request
+                </Button>
               </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <input type="email" className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon outline-none transition-colors" placeholder="john@example.com" />
-              </div>
+            ) : (
+              <div className="relative z-10">
+                <h3 className="font-serif text-3xl font-bold text-gray-900 mb-2">Request Appointment</h3>
+                <p className="text-gray-500 mb-8">Personalized dental care tailored to your schedule.</p>
+                
+                {status === 'error' && (
+                  <div className="mb-6 p-4 bg-red-50 border border-red-100 text-red-700 rounded-xl flex items-center gap-3 animate-shake">
+                    <AlertCircle className="shrink-0" />
+                    <p className="text-sm">Something went wrong. Please try again or call us at +91 8008337083.</p>
+                  </div>
+                )}
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Service Interested In</label>
-                <select className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon outline-none transition-colors">
-                  <option>General Checkup</option>
-                  <option>Whitening</option>
-                  <option>Implants</option>
-                  <option>Orthodontics</option>
-                  <option>Other</option>
-                </select>
-              </div>
+                <form className="space-y-5" onSubmit={handleSubmit}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">First Name</label>
+                      <input 
+                        required 
+                        type="text" 
+                        name="firstName"
+                        value={formData.firstName}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
+                        placeholder="John" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Last Name</label>
+                      <input 
+                        required 
+                        type="text" 
+                        name="lastName"
+                        value={formData.lastName}
+                        onChange={handleChange}
+                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
+                        placeholder="Doe" 
+                      />
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
+                    <input 
+                      required 
+                      type="email" 
+                      name="email"
+                      value={formData.email}
+                      onChange={handleChange}
+                      className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
+                      placeholder="john@example.com" 
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Message</label>
-                <textarea rows={4} className="w-full px-4 py-3 rounded-lg bg-gray-50 border border-gray-200 focus:border-brand-maroon focus:ring-1 focus:ring-brand-maroon outline-none transition-colors" placeholder="Preferred time, specific concerns..."></textarea>
-              </div>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Service Required</label>
+                    <select 
+                      required 
+                      name="service"
+                      value={formData.service}
+                      onChange={handleChange}
+                      className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all appearance-none"
+                    >
+                      <option value="">Select a service...</option>
+                      <option>Cosmetic Consultation</option>
+                      <option>General Checkup & Cleaning</option>
+                      <option>Dental Implants</option>
+                      <option>Invisalign / Orthodontics</option>
+                      <option>Pediatric Dentistry</option>
+                      <option>Emergency Care</option>
+                    </select>
+                  </div>
 
-              <Button fullWidth type="submit" className="mt-2">
-                Send Request
-              </Button>
-            </form>
+                  <div>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Your Message (Optional)</label>
+                    <textarea 
+                      rows={3} 
+                      name="message"
+                      value={formData.message}
+                      onChange={handleChange}
+                      className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all resize-none" 
+                      placeholder="Special concerns or preferred timing..."
+                    ></textarea>
+                  </div>
+
+                  <Button 
+                    fullWidth 
+                    type="submit" 
+                    className="mt-4 py-5 text-base flex items-center justify-center gap-3 shadow-xl"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                        Processing...
+                      </>
+                    ) : 'Confirm Appointment Request'}
+                  </Button>
+                  
+                  <p className="text-center text-gray-400 text-xs mt-4 italic">
+                    By submitting, you agree to our privacy policy. We protect your health information.
+                  </p>
+                </form>
+              </div>
+            )}
           </div>
 
         </div>
