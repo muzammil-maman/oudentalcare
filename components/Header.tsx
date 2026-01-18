@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Phone, Calendar } from 'lucide-react';
 import Button from './Button';
 import { NavItem } from '../types';
-
+import logo from '../assets/oudentallogo.png';
 // The logo is a static asset, we refer to it by its relative path from the root.
 // The user specified the filename is oudentallogo.PNG (case-sensitive).
-const LOGO_URL = "oudentallogo.png";
+const LOGO_URL = "../assets/oudentallogo.png";
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '#home' },
@@ -44,7 +44,7 @@ const Header: React.FC = () => {
           {/* Logo Section */}
           <a href="#" className="flex items-center space-x-3 group relative z-10">
             <img 
-              src={LOGO_URL} 
+              src={logo} 
               alt="OU Dental Clinic" 
               className={`transition-all duration-500 object-contain ${isScrolled ? 'h-10 md:h-12' : 'h-16 md:h-20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]'}`}
               loading="eager"
@@ -54,18 +54,6 @@ const Header: React.FC = () => {
               }}
             />
             
-            <div className={`flex flex-col transition-colors duration-500 ${!isScrolled ? 'text-white' : 'text-brand-maroon'}`}>
-              <span className={`font-serif font-bold leading-none tracking-wider ${
-                isScrolled ? 'text-xl' : 'text-2xl text-shadow'
-              }`}>
-                OU DENTAL CLINIC
-              </span>
-              {!isScrolled && (
-                <span className="text-brand-goldLight font-script text-xl leading-none mt-1 text-shadow">
-                  Oral Care For You
-                </span>
-              )}
-            </div>
           </a>
 
           {/* Desktop Nav */}
