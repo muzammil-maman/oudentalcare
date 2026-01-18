@@ -59,20 +59,6 @@ const Header: React.FC = () => {
                 }
               }}
             />
-            
-            {/* Branding Text */}
-            <div className={`flex flex-col transition-colors duration-500 ${!isScrolled ? 'text-white' : 'text-brand-maroon'}`}>
-              <span className={`font-serif font-bold leading-none tracking-wider ${
-                isScrolled ? 'text-xl' : 'text-2xl'
-              }`} style={!isScrolled ? { textShadow: '0 2px 10px rgba(0,0,0,0.8)' } : {}}>
-                OU DENTAL CLINIC
-              </span>
-              {!isScrolled && (
-                <span className="text-brand-goldLight font-script text-xl leading-none mt-1" style={{ textShadow: '0 2px 8px rgba(0,0,0,0.8)' }}>
-                  Oral Care For You
-                </span>
-              )}
-            </div>
           </a>
 
           {/* Desktop Nav */}
