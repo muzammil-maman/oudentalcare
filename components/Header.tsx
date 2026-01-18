@@ -2,10 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Menu, X, Phone, Calendar } from 'lucide-react';
 import Button from './Button';
 import { NavItem } from '../types';
-import logo from '../assets/oudentallogo.png';
+//import logo from '../assets/oudentallogo.png';
 // The logo is a static asset, we refer to it by its relative path from the root.
 // The user specified the filename is oudentallogo.PNG (case-sensitive).
-const LOGO_URL = "../assets/oudentallogo.png";
+const LOGO_URL = "oudentallogo.png";
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '#home' },
@@ -44,7 +44,7 @@ const Header: React.FC = () => {
           {/* Logo Section */}
           <a href="#" className="flex items-center space-x-3 group relative z-10">
             <img 
-              src={logo} 
+              src={LOGO_URL} 
               alt="OU Dental Clinic" 
               className={`transition-all duration-500 object-contain ${isScrolled ? 'h-10 md:h-12' : 'h-16 md:h-20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.4)]'}`}
               loading="eager"
