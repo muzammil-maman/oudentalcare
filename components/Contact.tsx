@@ -1,36 +1,50 @@
 /**
- * DEVELOPER NOTE: To make this form work with Google Sheets & Email:
+ * GOOGLE APPS SCRIPT FOR OU DENTAL CLINIC
+ * ---------------------------------------
  * 1. Create a Google Sheet.
  * 2. Go to Extensions > Apps Script.
- * 3. Paste the following code:
+ * 3. Paste this code:
  * 
  * function doPost(e) {
  *   const sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
  *   const data = JSON.parse(e.postData.contents);
+ *   const timestamp = new Date();
  *   
- *   // Append to Sheet
- *   sheet.appendRow([new Date(), data.firstName, data.lastName, data.email, data.service, data.message]);
+ *   // 1. Append to Sheet (Columns: Date, First Name, Last Name, Email, Phone, Service, Message)
+ *   sheet.appendRow([
+ *     timestamp, 
+ *     data.firstName, 
+ *     data.lastName, 
+ *     data.email, 
+ *     "'" + data.phone, // Adding ' to force string in Sheets
+ *     data.service, 
+ *     data.message
+ *   ]);
  *   
- *   // Email to Management
+ *   const officialEmail = "oudentalclinics@gmail.com";
+ *   
+ *   // 2. Email to Management
  *   MailApp.sendEmail({
- *     to: "oudentalclinics@gmail.com",
- *     subject: "New Appointment Request: " + data.firstName + " " + data.lastName,
- *     body: `New request received:\n\nName: ${data.firstName} ${data.lastName}\nEmail: ${data.email}\nService: ${data.service}\nMessage: ${data.message}`
+ *     to: officialEmail,
+ *     subject: "New Appointment: " + data.firstName + " " + data.lastName,
+ *     body: `New appointment request received from website:\n\n` +
+ *           `Patient: ${data.firstName} ${data.lastName}\n` +
+ *           `Email: ${data.email}\n` +
+ *           `Phone: ${data.phone}\n` +
+ *           `Service: ${data.service}\n` +
+ *           `Message: ${data.message}\n\n` +
+ *           `Received at: ${timestamp.toLocaleString()}`
  *   });
  *   
- *   // Confirmation Email to Patient
+ *   // 3. Confirmation Email to Patient
  *   MailApp.sendEmail({
  *     to: data.email,
- *     subject: "Appointment Request Received - OU Dental Clinic",
- *     body: `Dear ${data.firstName},\n\nThank you for reaching out to OU Dental Clinic. We have received your request for ${data.service} and will contact you shortly to confirm a time.\n\nBest regards,\nOU Dental Clinic Team`
+ *     subject: "We've Received Your Request - OU Dental Clinic",
+ *     body: `Dear ${data.firstName},\n\nThank you for choosing OU Dental Clinic. We have received your request for ${data.service}. Our team will contact you at ${data.phone} shortly to confirm your appointment time.\n\nBest regards,\nOU Dental Clinic Team`
  *   });
  *   
  *   return ContentService.createTextOutput(JSON.stringify({result: "success"})).setMimeType(ContentService.MimeType.JSON);
  * }
- * 
- * 4. Click 'Deploy' > 'New Deployment' > 'Web App'.
- * 5. Set 'Who has access' to 'Anyone'.
- * 6. Copy the Web App URL and paste it into the SCRIPT_URL constant below.
  */
 
 import React, { useState } from 'react';
@@ -45,6 +59,7 @@ const Contact: React.FC = () => {
     firstName: '',
     lastName: '',
     email: '',
+    phone: '',
     service: '',
     message: ''
   });
@@ -76,7 +91,7 @@ const Contact: React.FC = () => {
         
         if (response.ok) {
           setStatus('success');
-          setFormData({ firstName: '', lastName: '', email: '', service: '', message: '' });
+          setFormData({ firstName: '', lastName: '', email: '', phone: '', service: '', message: '' });
         } else {
           throw new Error("Submission failed");
         }
@@ -135,7 +150,7 @@ const Contact: React.FC = () => {
                 </div>
                 <h3 className="font-serif text-3xl font-bold text-gray-900 mb-4">Request Sent!</h3>
                 <p className="text-gray-600 text-lg max-w-xs mx-auto mb-8">
-                  We've received your appointment request. Check your email for a confirmation. We'll speak soon!
+                  We've received your appointment request. We'll contact you shortly at your provided phone number.
                 </p>
                 <Button onClick={() => setStatus('idle')} variant="outline" className="border-brand-gold text-brand-gold hover:bg-brand-gold hover:text-white">
                   Send Another Request
@@ -153,55 +168,69 @@ const Contact: React.FC = () => {
                   </div>
                 )}
 
-                <form className="space-y-5" onSubmit={handleSubmit}>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">First Name</label>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">First Name</label>
                       <input 
                         required 
                         type="text" 
                         name="firstName"
                         value={formData.firstName}
                         onChange={handleChange}
-                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
+                        className="w-full px-5 py-3 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
                         placeholder="John" 
                       />
                     </div>
                     <div>
-                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Last Name</label>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Last Name</label>
                       <input 
                         required 
                         type="text" 
                         name="lastName"
                         value={formData.lastName}
                         onChange={handleChange}
-                        className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
+                        className="w-full px-5 py-3 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
                         placeholder="Doe" 
                       />
                     </div>
                   </div>
                   
-                  <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Email Address</label>
-                    <input 
-                      required 
-                      type="email" 
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
-                      placeholder="john@example.com" 
-                    />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Email Address</label>
+                      <input 
+                        required 
+                        type="email" 
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        className="w-full px-5 py-3 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
+                        placeholder="john@example.com" 
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Phone Number</label>
+                      <input 
+                        required 
+                        type="tel" 
+                        name="phone"
+                        value={formData.phone}
+                        onChange={handleChange}
+                        className="w-full px-5 py-3 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all" 
+                        placeholder="+91 1234567890" 
+                      />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Service Required</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Service Required</label>
                     <select 
                       required 
                       name="service"
                       value={formData.service}
                       onChange={handleChange}
-                      className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all appearance-none"
+                      className="w-full px-5 py-3 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all appearance-none"
                     >
                       <option value="">Select a service...</option>
                       <option>Cosmetic Consultation</option>
@@ -214,21 +243,21 @@ const Contact: React.FC = () => {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 ml-1">Your Message (Optional)</label>
+                    <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-1 ml-1">Your Message (Optional)</label>
                     <textarea 
-                      rows={3} 
+                      rows={2} 
                       name="message"
                       value={formData.message}
                       onChange={handleChange}
-                      className="w-full px-5 py-4 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all resize-none" 
-                      placeholder="Special concerns or preferred timing..."
+                      className="w-full px-5 py-3 rounded-2xl bg-gray-50 border-2 border-transparent focus:border-brand-gold focus:bg-white outline-none transition-all resize-none" 
+                      placeholder="Special concerns..."
                     ></textarea>
                   </div>
 
                   <Button 
                     fullWidth 
                     type="submit" 
-                    className="mt-4 py-5 text-base flex items-center justify-center gap-3 shadow-xl"
+                    className="mt-2 py-4 text-base flex items-center justify-center gap-3 shadow-xl"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -239,8 +268,8 @@ const Contact: React.FC = () => {
                     ) : 'Confirm Appointment Request'}
                   </Button>
                   
-                  <p className="text-center text-gray-400 text-xs mt-4 italic">
-                    By submitting, you agree to our privacy policy. We protect your health information.
+                  <p className="text-center text-gray-400 text-[10px] mt-2 italic leading-tight">
+                    By submitting, you agree to our privacy policy. Your data is sent directly to our official clinic email and Google Sheet.
                   </p>
                 </form>
               </div>

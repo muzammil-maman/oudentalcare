@@ -3,9 +3,11 @@ import { Menu, X, Phone, Calendar } from 'lucide-react';
 import Button from './Button';
 import { NavItem } from '../types';
 
-// Using a leading slash ensures the browser looks at the root directory.
-// We provide a fallback mechanism in the img component to handle case-sensitivity.
-const LOGO_URL = "/static/images/oudentallogo.png";
+/**
+ * We use the root-level path. 
+ * Browsers in this environment typically serve files from the current directory.
+ */
+const LOGO_PATH = "oudentallogo.png";
 
 const NAV_ITEMS: NavItem[] = [
   { label: 'Home', href: '#home' },
@@ -44,21 +46,35 @@ const Header: React.FC = () => {
           {/* Logo Section */}
           <a href="#" className="flex items-center space-x-3 group relative z-10">
             <img 
-              src={LOGO_URL} 
+              src={LOGO_PATH} 
               alt="OU Dental Clinic" 
-              className={`transition-all duration-500 object-contain ${isScrolled ? 'h-10 md:h-12' : 'h-16 md:h-20 drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]'}`}
+              className={`transition-all duration-500 object-contain ${isScrolled ? 'h-10 md:h-12' : 'h-16 md:h-20'}`}
               loading="eager"
               onError={(e) => {
                 const img = e.target as HTMLImageElement;
-                // Try lowercase fallback if the initial request fails
-                if (img.src.includes('.PNG')) {
-                    img.src = '/oudentallogo.png';
-                } else {
-                    console.error("Logo failed to load at root path.");
-                    img.classList.add('hidden');
+                // If .png failed, try .PNG (case sensitivity check)
+                if (img.src.endsWith('png')) {
+                  img.src = 'oudentallogo.PNG';
+                } else if (!img.src.includes('logo.png')) {
+                  // Final fallback to the default favicon or hidden
+                  console.error("Logo not found at oudentallogo.png or oudentallogo.PNG");
+                  img.src = '/logo.png'; 
                 }
               }}
             />
+            
+            <div className={`flex flex-col transition-colors duration-500 ${!isScrolled ? 'text-white' : 'text-brand-maroon'}`}>
+              <span className={`font-serif font-bold leading-none tracking-wider ${
+                isScrolled ? 'text-xl' : 'text-2xl drop-shadow-lg'
+              }`}>
+                OU DENTAL CLINIC
+              </span>
+              {!isScrolled && (
+                <span className="text-brand-goldLight font-script text-xl leading-none mt-1 drop-shadow-md">
+                  Oral Care For You
+                </span>
+              )}
+            </div>
           </a>
 
           {/* Desktop Nav */}
@@ -71,26 +87,24 @@ const Header: React.FC = () => {
                   className={`text-sm font-bold uppercase tracking-widest transition-all duration-300 relative group py-2 ${
                     isScrolled 
                       ? 'text-gray-700 hover:text-brand-maroon' 
-                      : 'text-white hover:text-brand-gold'
+                      : 'text-white hover:text-brand-gold drop-shadow-md'
                   }`}
-                  style={!isScrolled ? { textShadow: '0 2px 6px rgba(0,0,0,0.9)' } : {}}
                 >
                   {item.label}
                   <span className={`absolute bottom-0 left-0 w-0 h-0.5 transition-all duration-300 group-hover:w-full ${
-                    isScrolled ? 'bg-brand-maroon' : 'bg-brand-gold shadow-[0_0_8px_rgba(200,163,88,1)]'
+                    isScrolled ? 'bg-brand-maroon' : 'bg-brand-gold'
                   }`}></span>
                 </a>
               ))}
             </div>
 
-            <div className={`h-6 w-px mx-2 ${isScrolled ? 'bg-gray-200' : 'bg-white/40'}`}></div>
+            <div className={`h-6 w-px mx-2 ${isScrolled ? 'bg-gray-200' : 'bg-white/20'}`}></div>
 
             <a 
               href="tel:+918008337083" 
               className={`flex items-center space-x-2 font-bold transition-colors ${
-                isScrolled ? 'text-brand-maroon hover:text-brand-gold' : 'text-white hover:text-brand-gold'
+                isScrolled ? 'text-brand-maroon hover:text-brand-gold' : 'text-white hover:text-brand-gold drop-shadow-md'
               }`}
-              style={!isScrolled ? { textShadow: '0 2px 4px rgba(0,0,0,0.8)' } : {}}
             >
               <Phone size={18} />
               <span className="text-sm tracking-tighter">+91 8008337083</span>
@@ -99,7 +113,7 @@ const Header: React.FC = () => {
             <Button 
               onClick={handleBookNow} 
               variant={isScrolled ? "primary" : "secondary"} 
-              className={`ml-4 flex items-center gap-2 px-6 shadow-2xl ${!isScrolled ? 'border border-white/30' : ''}`}
+              className="ml-4 flex items-center gap-2 px-6 shadow-xl"
             >
               <Calendar size={16} /> Book Now
             </Button>
@@ -108,7 +122,7 @@ const Header: React.FC = () => {
           {/* Mobile Menu Toggle */}
           <button 
             className={`lg:hidden p-2 rounded-full transition-colors ${
-              isScrolled ? 'text-brand-maroon bg-gray-100' : 'text-white bg-black/40 backdrop-blur-sm'
+              isScrolled ? 'text-brand-maroon bg-gray-100' : 'text-white bg-black/20'
             }`}
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             aria-label="Toggle Menu"
@@ -127,7 +141,7 @@ const Header: React.FC = () => {
             <a 
               key={item.label}
               href={item.href}
-              className="text-2xl font-serif font-bold text-gray-800 hover:text-brand-maroon border-b border-gray-100 pb-4 flex justify-between items-center group"
+              className="text-2xl font-serif font-bold text-gray-800 hover:text-brand-maroon border-b border-gray-50 pb-4 flex justify-between items-center group"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               {item.label}
